@@ -1,14 +1,33 @@
 import { deleteFolders } from "../core/cleaner";
 import { promptForConfirmation } from "../utils/logger";
 import { logger } from "../utils/logger";
-import { scanAndMeasureFolders } from "../core/scanner";
+import {
+  normalizeCustomFolders,
+  normalizeTargetFolders,
+  scanAndMeasureFoldersWithOptions
+} from "../core/scanner";
 
 interface CleanOptions {
   all?: boolean;
+  custom?: string[];
+  target?: string[];
 }
 
 export async function cleanCommand(root: string, options: CleanOptions): Promise<void> {
-  const result = await scanAndMeasureFolders(root);
+  const targetFolders = [
+    ...(normalizeTargetFolders(options.target) ?? []),
+    ...(normalizeCustomFolders(options.custom) ?? [])
+  ];
+
+  const result = await scanAndMeasureFoldersWithOptions(root, {
+    targetFolders: targetFolders.length > 0 ? targetFolders : undefined,
+    onMeasureStart(folderCount) {
+      logger.printMeasureStart(folderCount);
+    },
+    onFolderMeasured(progress) {
+      logger.printMeasureProgress(progress.completedFolders, progress.totalFolders);
+    }
+  });
 
   logger.printScanSummary(result);
 

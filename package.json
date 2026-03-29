@@ -1,12 +1,21 @@
 {
   "name": "sona-clean",
-  "version": "0.0.1",
-  "description": "Clean generated project folders like node_modules, .next, dist, and build.",
+  "version": "0.1.0",
+  "description": "CLI to scan and clean generated project folders like node_modules, .next, dist, and build.",
   "bin": {
     "sona-clean": "dist/index.js"
   },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build && npm test",
     "test": "node --test test/*.test.mjs",
     "start": "node dist/index.js"
   },
@@ -14,8 +23,18 @@
     "cli",
     "cleanup",
     "disk-space",
-    "typescript"
+    "typescript",
+    "node-modules",
+    "developer-tools"
   ],
+  "homepage": "https://github.com/Dinil-Thilakarathne/sona-clean#readme",
+  "bugs": {
+    "url": "https://github.com/Dinil-Thilakarathne/sona-clean/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dinil-Thilakarathne/sona-clean.git"
+  },
   "license": "MIT",
   "dependencies": {
     "commander": "^14.0.0",

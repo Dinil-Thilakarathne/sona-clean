@@ -27,6 +27,20 @@ async function createFixtureTree() {
   return root;
 }
 
+async function createCustomFixtureTree() {
+  const root = await mkdtemp(path.join(os.tmpdir(), "sona-clean-custom-"));
+
+  await mkdir(path.join(root, "app", "coverage"), { recursive: true });
+  await mkdir(path.join(root, "app", "tmp"), { recursive: true });
+  await mkdir(path.join(root, "app", "node_modules", "pkg"), { recursive: true });
+
+  await writeFile(path.join(root, "app", "coverage", "coverage.json"), "report");
+  await writeFile(path.join(root, "app", "tmp", "cache.tmp"), "temp");
+  await writeFile(path.join(root, "app", "node_modules", "pkg", "index.js"), "console.log('x');");
+
+  return root;
+}
+
 async function createWorkspaceFixture() {
   const root = await mkdtemp(path.join(os.tmpdir(), "sona-clean-workspace-"));
 
@@ -118,4 +132,67 @@ test("scan groups output by top-level project prefix under the scan root", async
   assert.match(result.stdout, /A\/dist \(1 folder\)/);
   assert.match(result.stdout, /B\/node_modules \(1 folder\)/);
   assert.match(result.stdout, /B\/dist \(1 folder\)/);
+});
+
+test("scan can target a single folder type", async () => {
+  const root = await createFixtureTree();
+  const result = await runCli(["scan", root, "--target", "dist"]);
+
+  assert.equal(result.code, 0);
+  assert.match(result.stdout, /dist \(1 folder\)/);
+  assert.doesNotMatch(result.stdout, /node_modules/);
+  assert.doesNotMatch(result.stdout, /\.next/);
+  assert.doesNotMatch(result.stdout, /build/);
+});
+
+test("scan can target multiple folder types", async () => {
+  const root = await createFixtureTree();
+  const result = await runCli(["scan", root, "--target", "dist", "build"]);
+
+  assert.equal(result.code, 0);
+  assert.match(result.stdout, /dist \(1 folder\)/);
+  assert.match(result.stdout, /build \(1 folder\)/);
+  assert.doesNotMatch(result.stdout, /node_modules/);
+  assert.doesNotMatch(result.stdout, /\.next/);
+});
+
+test("scan rejects unsupported target folder names", async () => {
+  const root = await createFixtureTree();
+  const result = await runCli(["scan", root, "--target", "coverage"]);
+
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /Error: Unsupported target folder\(s\): coverage\./);
+});
+
+test("scan can target custom folder names", async () => {
+  const root = await createCustomFixtureTree();
+  const result = await runCli(["scan", root, "--custom", "coverage", "tmp"]);
+
+  assert.equal(result.code, 0);
+  assert.match(result.stdout, /coverage \(1 folder\)/);
+  assert.match(result.stdout, /tmp \(1 folder\)/);
+  assert.doesNotMatch(result.stdout, /node_modules/);
+});
+
+test("scan can combine built-in and custom folder names", async () => {
+  const root = await createCustomFixtureTree();
+  const result = await runCli(["scan", root, "--target", "node_modules", "--custom", "coverage"]);
+
+  assert.equal(result.code, 0);
+  assert.match(result.stdout, /coverage \(1 folder\)/);
+  assert.match(result.stdout, /node_modules \(1 folder\)/);
+});
+
+test("scan shows a clear error for a missing path", async () => {
+  const result = await runCli(["scan", "/path/that/does/not/exist"]);
+
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /Error: Path not found: \/path\/that\/does\/not\/exist/);
+});
+
+test("scan shows a clear error for a file path", async () => {
+  const result = await runCli(["scan", path.join(projectRoot, "package.json")]);
+
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /Error: Path must be a directory:/);
 });

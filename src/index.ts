@@ -3,20 +3,30 @@
 import { Command } from "commander";
 import { cleanCommand } from "./commands/clean";
 import { scanCommand } from "./commands/scan";
+import { getSupportedTargetFolders } from "./core/scanner";
 
 const program = new Command();
+const targetHelp = `only scan these generated folder names (${getSupportedTargetFolders().join(", ")})`;
+const customHelp = "scan for custom folder names in addition to built-in targets";
 
 program
   .name("sona-clean")
   .description("Scan projects for generated folders and reclaim disk space safely")
   .version("0.0.1");
 
-program.command("scan").argument("<path>", "path to scan").action(scanCommand);
+program
+  .command("scan")
+  .argument("<path>", "path to scan")
+  .option("-t, --target <folders...>", targetHelp)
+  .option("-c, --custom <folders...>", customHelp)
+  .action(scanCommand);
 
 program
   .command("clean")
   .argument("<path>", "path to clean")
   .option("--all", "remove all detected folders without prompting")
+  .option("-t, --target <folders...>", targetHelp)
+  .option("-c, --custom <folders...>", customHelp)
   .action(cleanCommand);
 
 program.parseAsync().catch((error: unknown) => {

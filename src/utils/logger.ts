@@ -7,6 +7,7 @@ import type { ScanResult, SizedFolder } from "../core/scanner";
 
 interface FolderGroup {
   label: string;
+  projectKey: string;
   count: number;
   sizeBytes: number;
 }
@@ -20,6 +21,13 @@ function getFolderGroupLabel(root: string, folder: SizedFolder): string {
   }
 
   return `${segments[0]}/${folder.name}`;
+}
+
+function getProjectKey(root: string, folder: SizedFolder): string {
+  const relativePath = path.relative(root, folder.path);
+  const segments = relativePath.split(path.sep).filter(Boolean);
+
+  return segments[0] ?? folder.name;
 }
 
 function groupFolders(root: string, folders: SizedFolder[]): FolderGroup[] {
@@ -37,12 +45,23 @@ function groupFolders(root: string, folders: SizedFolder[]): FolderGroup[] {
 
     grouped.set(label, {
       label,
+      projectKey: getProjectKey(root, folder),
       count: 1,
       sizeBytes: folder.sizeBytes
     });
   }
 
-  return Array.from(grouped.values()).sort((left, right) => right.sizeBytes - left.sizeBytes);
+  return Array.from(grouped.values()).sort((left, right) => {
+    if (left.projectKey !== right.projectKey) {
+      return left.projectKey.localeCompare(right.projectKey);
+    }
+
+    if (left.sizeBytes !== right.sizeBytes) {
+      return right.sizeBytes - left.sizeBytes;
+    }
+
+    return left.label.localeCompare(right.label);
+  });
 }
 
 function formatGroupLabel(group: FolderGroup): string {
@@ -55,7 +74,30 @@ export const logger = {
     console.log(message);
   },
 
+  printMeasureStart(folderCount: number): void {
+    if (folderCount === 0) {
+      return;
+    }
+
+    console.log(`Found ${folderCount} generated folders. Measuring sizes...`);
+    console.log("");
+  },
+
+  printMeasureProgress(completedFolders: number, totalFolders: number): void {
+    if (totalFolders === 0) {
+      return;
+    }
+
+    if (completedFolders === totalFolders || completedFolders % 25 === 0) {
+      console.log(`Measured ${completedFolders}/${totalFolders} folders...`);
+    }
+  },
+
   printScanSummary(result: ScanResult): void {
+    if (result.folders.length > 0) {
+      console.log("");
+    }
+
     console.log(`Scanning root: ${result.root}`);
     console.log("");
 
@@ -64,8 +106,16 @@ export const logger = {
       return;
     }
 
-    for (const group of groupFolders(result.root, result.folders)) {
+    const groups = groupFolders(result.root, result.folders);
+    let previousProjectKey: string | null = null;
+
+    for (const group of groups) {
+      if (previousProjectKey !== null && previousProjectKey !== group.projectKey) {
+        console.log("");
+      }
+
       console.log(`${formatBytes(group.sizeBytes).padStart(10)}  ${formatGroupLabel(group)}`);
+      previousProjectKey = group.projectKey;
     }
 
     console.log("");
