@@ -1,0 +1,28 @@
+{
+  "name": "sona-clean",
+  "version": "0.0.1",
+  "description": "Clean generated project folders like node_modules, .next, dist, and build.",
+  "bin": {
+    "sona-clean": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test test/*.test.mjs",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "cli",
+    "cleanup",
+    "disk-space",
+    "typescript"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^14.0.0",
+    "fast-glob": "^3.3.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.3"
+  }
+}
