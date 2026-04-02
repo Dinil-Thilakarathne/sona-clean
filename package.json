@@ -1,6 +1,6 @@
 {
   "name": "sona-clean",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CLI to scan and clean generated project folders like node_modules, .next, dist, and build.",
   "bin": {
     "sona-clean": "dist/index.js"
