@@ -121,6 +121,15 @@ export const logger = {
     console.log("");
     console.log(`Matched folders: ${result.folders.length}`);
     console.log(`Total reclaimable: ${formatBytes(result.totalSizeBytes)}`);
+
+    if (result.warnings.length > 0) {
+      console.log("");
+      console.log(`Warnings: ${result.warnings.length}`);
+
+      for (const warning of result.warnings) {
+        console.log(`Warning: ${warning}`);
+      }
+    }
   },
 
   printDeletionSummary(root: string, results: DeletionResult[]): void {
@@ -151,12 +160,18 @@ export const logger = {
   }
 };
 
-export async function promptForConfirmation(message: string): Promise<boolean> {
+export async function promptForConfirmation(message: string, expectedText?: string): Promise<boolean> {
   const rl = createInterface({ input, output });
 
   try {
     const answer = await rl.question(message);
-    return ["y", "yes"].includes(answer.trim().toLowerCase());
+    const normalizedAnswer = answer.trim();
+
+    if (expectedText) {
+      return normalizedAnswer === expectedText;
+    }
+
+    return ["y", "yes"].includes(normalizedAnswer.toLowerCase());
   } finally {
     rl.close();
   }

@@ -123,6 +123,44 @@ test("clean --all removes generated folders and preserves unrelated directories"
   await access(keepFolder, fsConstants.F_OK);
 });
 
+test("clean refuses dangerous custom folder names by default", async () => {
+  const root = await createFixtureTree();
+  const result = await runCli(["clean", root, "--custom", "src", "--all"]);
+
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /Error: Refusing dangerous custom folder\(s\): src\./);
+});
+
+test("clean refuses broad roots by default", async () => {
+  const result = await runCli(["clean", "/tmp", "--target", "dist", "--all"]);
+
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /Error: Refusing to clean broad root: \/private\/tmp\. Use --allow-broad-root to continue\./);
+});
+
+test("clean with custom folders requires typed confirmation even with --all", async () => {
+  const root = await createCustomFixtureTree();
+  const targetFolder = path.join(root, "app", "coverage");
+  const result = await runCli(["clean", root, "--custom", "coverage", "--all"], { input: "n\n" });
+
+  assert.equal(result.code, 0);
+  assert.match(result.stdout, /Type "DELETE" to continue:/);
+  assert.match(result.stdout, /Cleanup cancelled\./);
+  await access(targetFolder, fsConstants.F_OK);
+});
+
+test("clean with custom folders deletes only after typed confirmation", async () => {
+  const root = await createCustomFixtureTree();
+  const targetFolder = path.join(root, "app", "coverage");
+  const keepFolder = path.join(root, "app", "node_modules");
+  const result = await runCli(["clean", root, "--custom", "coverage", "--all"], { input: "DELETE\n" });
+
+  assert.equal(result.code, 0);
+  assert.match(result.stdout, /Deleted folders: 1/);
+  await assert.rejects(() => access(targetFolder, fsConstants.F_OK));
+  await access(keepFolder, fsConstants.F_OK);
+});
+
 test("scan groups output by top-level project prefix under the scan root", async () => {
   const root = await createWorkspaceFixture();
   const result = await runCli(["scan", root]);

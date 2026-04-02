@@ -74,6 +74,14 @@ sona-clean scan ~/projects --custom coverage tmp
 sona-clean clean ~/projects --target dist --custom coverage --all
 ```
 
+### Allow broad-root or dangerous custom cleanup explicitly
+
+```bash
+sona-clean clean ~/projects --custom coverage --all
+sona-clean clean ~/projects --custom src --allow-dangerous-custom
+sona-clean clean /tmp --target dist --allow-broad-root
+```
+
 ## Supported built-in targets
 
 - `node_modules`
@@ -101,6 +109,8 @@ Options:
 - `--all`: delete without interactive confirmation
 - `-t, --target <folders...>`: limit scanning to built-in generated folders
 - `-c, --custom <folders...>`: include custom folder names
+- `--allow-broad-root`: allow cleaning broad roots like `/`, `/Users`, or your home directory
+- `--allow-dangerous-custom`: allow risky custom names like `.git` or `src`
 
 ## Output behavior
 
@@ -134,6 +144,11 @@ Total reclaimable: 854.56 MB
 - `--target` is restricted to built-in generated folder names
 - `--custom` is for arbitrary folder names and should be used carefully
 - `clean` prompts before deletion unless `--all` is provided
+- `clean` refuses broad roots like `/`, `/Users`, `/tmp`, and your home directory unless `--allow-broad-root` is provided
+- dangerous custom names like `.git`, `src`, `app`, `lib`, `Documents`, and `Library` are blocked unless `--allow-dangerous-custom` is provided
+- custom cleanup requires typing `DELETE` even when `--all` is used
+- deletion targets are revalidated before removal, and symlink targets are refused
+- unreadable directories are surfaced as scan warnings instead of being silently ignored
 - The tool only deletes matched directories, never individual files directly
 
 ## Development
