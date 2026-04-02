@@ -138,7 +138,10 @@ test("clean refuses broad roots by default", async () => {
   const result = await runCli(["clean", "/tmp", "--target", "dist", "--all"]);
 
   assert.equal(result.code, 1);
-  assert.match(result.stderr, /Error: Refusing to clean broad root: \/private\/tmp\. Use --allow-broad-root to continue\./);
+  assert.match(
+    result.stderr,
+    /Error: Refusing to clean broad root: (\/private)?\/tmp\. Use --allow-broad-root to continue\./
+  );
 });
 
 test("clean with custom folders requires typed confirmation even with --all", async () => {
