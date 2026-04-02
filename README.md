@@ -14,6 +14,20 @@ It is built for the common case where development workspaces accumulate large re
 
 ## Install
 
+### Global install from npm
+
+```bash
+npm install -g sona-clean
+```
+
+Then verify:
+
+```bash
+sona-clean --help
+sona-clean scan --help
+sona-clean clean --help
+```
+
 ### Local development
 
 ```bash
@@ -34,6 +48,12 @@ sona-clean --help
 npm install
 npm run build
 npm install -g .
+```
+
+### Uninstall
+
+```bash
+npm uninstall -g sona-clean
 ```
 
 ## Usage
@@ -106,10 +126,10 @@ Scan first, then remove matched folders.
 
 Options:
 
-- `--all`: delete without interactive confirmation
+- `--all`: skip the standard yes/no confirmation for built-in safe cleanup
 - `-t, --target <folders...>`: limit scanning to built-in generated folders
 - `-c, --custom <folders...>`: include custom folder names
-- `--allow-broad-root`: allow cleaning broad roots like `/`, `/Users`, or your home directory
+- `--allow-broad-root`: allow cleaning broad roots like `/`, `/Users`, `/tmp`, `/var`, or your home directory
 - `--allow-dangerous-custom`: allow risky custom names like `.git` or `src`
 
 ## Output behavior
@@ -143,8 +163,8 @@ Total reclaimable: 854.56 MB
 
 - `--target` is restricted to built-in generated folder names
 - `--custom` is for arbitrary folder names and should be used carefully
-- `clean` prompts before deletion unless `--all` is provided
-- `clean` refuses broad roots like `/`, `/Users`, `/tmp`, and your home directory unless `--allow-broad-root` is provided
+- `clean` prompts before deletion unless `--all` is provided for built-in safe cleanup
+- `clean` refuses broad roots like `/`, `/Users`, `/tmp`, `/private/tmp`, `/var`, `/private/var`, and your home directory unless `--allow-broad-root` is provided
 - dangerous custom names like `.git`, `src`, `app`, `lib`, `Documents`, and `Library` are blocked unless `--allow-dangerous-custom` is provided
 - custom cleanup requires typing `DELETE` even when `--all` is used
 - deletion targets are revalidated before removal, and symlink targets are refused
