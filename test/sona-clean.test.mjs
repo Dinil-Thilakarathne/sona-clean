@@ -5,8 +5,11 @@ import { constants as fsConstants } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
-const projectRoot = "/Users/dinilthilakarathne/repos/open-sources/sona-clean";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const projectRoot = path.resolve(__dirname, "..");
 const cliEntry = path.join(projectRoot, "dist", "index.js");
 
 async function createFixtureTree() {
