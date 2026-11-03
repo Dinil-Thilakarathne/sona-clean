@@ -180,6 +180,12 @@ npm test
 ```
 
 
+## Roadmap
+
+Planned work — from safety hardening through smarter project-aware detection and an
+eventual native (Go/Rust) port — is documented in [docs/ROADMAP.md](docs/ROADMAP.md),
+along with the known limitations found in the v0.1.0 audit.
+
 ## Release status
 
 This is currently an early `0.1.0` release intended to validate real-world usage and CLI UX.
